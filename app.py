@@ -1,14 +1,13 @@
 import dash
-from dash.dependencies import Input, Output, State
+from dash import Input, Output, State
 from dash import dcc
 from dash import html
-from dash import dash_table
 import dash_bootstrap_components as dbc
 import plotly.express as px
-import dash_ag_grid as dag
+#import dash_ag_grid as dag
+import dash_daq as daq
 import pandas as pd
 import numpy as np
-import dash_daq as daq
 import base64
 import io
 
@@ -424,7 +423,7 @@ def store_uploaded_data(contents):
         data_dict = dashboard_data_valid.to_dict('records')
         return data_dict, "Successfully uploaded data for {} valid samples".format(str(len(dashboard_data_valid)))
     else:
-      return {}, ''
+      return dash.no_update
 
 @dash_app.callback(Output('specimen-type-selection', 'options'),
               Input('uploaded-data', 'data'), prevent_initial_call=True)
@@ -437,7 +436,7 @@ def store_uploaded_data(uploaded_data):
     specimen_type_options['All'] = 'All'
     return specimen_type_options
   else:
-    return {}
+    return dash.no_update
 
 @dash_app.callback(Output('settings', 'data'),
                    [Input('ct-window-threshold', 'value'),
@@ -449,15 +448,19 @@ def store_uploaded_data(uploaded_data):
                    Input('specimen-type-selection','value')
                    ], prevent_intial_call=True)
 def get_settings(ct_window, min_ep, min_peak, overall_epr, epr_ct_check, epr, specimen_type):
-  settings = {'minimum-peak-cyle-threshold':ct_window[0],
-              'maximum-peak-cycle-threshold':ct_window[1],
-              'minimum-ep-threshold':min_ep,
-              'minimum-peak-threshold':min_peak,
-              'overall-epr-check-threshold':overall_epr,
-              'epr-check-ct-threshold':epr_ct_check,
-              'epr-check-threshold':epr,
-              'specimen-type':specimen_type}
-  return settings
+  if ct_window:
+    settings = {'minimum-peak-cyle-threshold':ct_window[0],
+                'maximum-peak-cycle-threshold':ct_window[1],
+                'minimum-ep-threshold':min_ep,
+                'minimum-peak-threshold':min_peak,
+                'overall-epr-check-threshold':overall_epr,
+                'epr-check-ct-threshold':epr_ct_check,
+                'epr-check-threshold':epr,
+                'specimen-type':specimen_type}
+
+    return settings
+  else:
+    return dash.no_update
 
 @dash_app.callback([Output('clinical-sensitivity','value'),
                     Output('clinical-sensitivity-impact', 'value'),
@@ -508,7 +511,7 @@ def update_clinical_sensitivity_color(value):
   if value < 0:
     return 'red'
   else:
-    return 'green'\
+    return 'green'
 
 @dash_app.callback(Output('analytical-sensitivity-impact','color'),
               Input('analytical-sensitivity-impact','value'), prevent_initial_call=True)
@@ -526,7 +529,6 @@ def update_clinical_sensitivity_color(value):
   else:
     return 'green'
 
-
 @dash_app.callback(Output('customer-fps-impact','color'),
                    Input('customer-fps-impact','value'), prevent_initial_call=True)
 def update_clinical_sensitivity_color(value):
@@ -534,10 +536,6 @@ def update_clinical_sensitivity_color(value):
     return 'green'
   else:
     return 'red'
-
-
-
-    
 
 if __name__ == '__main__':
     
