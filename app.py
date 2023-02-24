@@ -12,10 +12,10 @@ import dash_daq as daq
 import base64
 import io
 
+
 dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI])
 app = dash_app.server
-
-
+#dash_app.title = 'NeuMoDx Assay Tuner'
 
 def check_cutoffs(data:pd.DataFrame, settings:dict, target:str):
   target_result_frame = data.copy()
@@ -92,7 +92,6 @@ def calculate_current_sensitivity_specificity(data: pd.DataFrame):
     current_frame['Classification'] = classify_result(current_frame, observed_column='Reported Result')
     current_frame[['TP', 'FP', 'TN', 'FN']] = build_classification_array(current_frame)
     return calculate_sensitivity_specificity(current_frame)
-
 
 def serve_layout():
     
@@ -233,7 +232,6 @@ def serve_layout():
     Build Sensitivity / Specificity Gauges 
     """
     
-    import dash_daq as daq
 
     clinical_sensitivity = daq.Gauge(
         color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
@@ -281,11 +279,11 @@ def serve_layout():
     )
     
     customer_fps = daq.Tank(    
-                                        label='Customer Reported False Positives',
-                                        showCurrentValue=True,
-                                        id='customer-fps',
-                                        style=sensitivity_specificity_style
-                                    )
+                              label='Customer Reported False Positives',
+                              showCurrentValue=True,
+                              id='customer-fps',
+                              style=sensitivity_specificity_style
+                          )
     
     clinical_sensitivity_impact = daq.LEDDisplay(
                                           id="clinical-sensitivity-impact",
