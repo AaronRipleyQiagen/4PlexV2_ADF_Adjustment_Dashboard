@@ -29,9 +29,9 @@ def serve_layout():
                               'vertical-align': 'middle',
                               'horizontal-align': 'left'}
 
-    sensitivity_specificity_style = {'width': '25%',
+    sensitivity_specificity_style = {'width': '20%',
                               'display': 'inline-block',
-                              'vertical-align': 'middle',
+                              'vertical-align': 'Top',
                               'horizontal-align': 'left'}
     customer_fp_style = {'width': '100%',
                           'display': 'inline-block',
@@ -151,6 +151,8 @@ def serve_layout():
     specimen_type_selection = dcc.Dropdown(id='specimen-type-selection')
     settings = dcc.Store(id='settings', storage_type='session')
     
+    
+
     """
     Build Sensitivity / Specificity Gauges 
     """
@@ -158,7 +160,7 @@ def serve_layout():
     import dash_daq as daq
 
     clinical_sensitivity = daq.Gauge(
-        color="#9B51E0",
+        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Clinical Sensitivity',
         max=100,
         min=0,
@@ -169,7 +171,7 @@ def serve_layout():
     )
 
     clinical_specificity = daq.Gauge(
-        color="#9B51E0",
+        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Clinical Specificity',
         max=100,
         min=0,
@@ -180,7 +182,7 @@ def serve_layout():
     )
 
     analytical_sensitivity = daq.Gauge(
-        color="#9B51E0",
+        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Analytical Sensitivity',
         max=100,
         min=0,
@@ -191,7 +193,7 @@ def serve_layout():
     )
 
     analytical_specificity = daq.Gauge(
-        color="#9B51E0",
+        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Analytical Specificity',
         max=100,
         min=0,
@@ -202,15 +204,97 @@ def serve_layout():
         
     )
     
-    customer_fp_label = html.Label("Number of customer FPS", style={'width':'20%'})
-    customer_fps = daq.GraduatedBar(    
-                                        step=1,
-                                        size=1000,
+    customer_fps = daq.Tank(    
+                                        label='Customer Reported False Positives',
                                         showCurrentValue=True,
                                         id='customer-fps',
-                                        style=customer_fp_style
+                                        style=sensitivity_specificity_style
                                     )
+    
+    clinical_sensitivity_impact = daq.LEDDisplay(
+                                          id="clinical-sensitivity-impact",
+                                          label="Impact to Clinical Sensitivity",
+                                          value='0.00',
+                                          color="green",
+                                          style=sensitivity_specificity_style
+                                      )
+    clinical_specificity_impact = daq.LEDDisplay(
+                                          id="clinical-specificity-impact",
+                                          label="Impact to Clinical Specificity",
+                                          value='0.00',
+                                          color="green",
+                                          style=sensitivity_specificity_style
+                                      )
+    analytical_sensitivity_impact = daq.LEDDisplay(
+                                          id="analytical-sensitivity-impact",
+                                          label="Impact to Analytical Sensitivity",
+                                          value='0.00',
+                                          color="green",
+                                          style=sensitivity_specificity_style
+                                      )                                  
+    analytical_specificity_impact = daq.LEDDisplay(
+                                          id="analytical-specificity-impact",
+                                          label="Impact to Analytical Specificity",
+                                          value='0.00',
+                                          color="green",
+                                          style=sensitivity_specificity_style
+                                      )
+    
+    customer_fp_impact = daq.LEDDisplay(
+                                          id="customer-fps-impact",
+                                          label="Impact to Customer Reported FPs",
+                                          value='0',
+                                          color="green",
+                                          style=sensitivity_specificity_style
+                                      )
+    
+    """
+    Assemble the Card Body for Summary Results
+    """
+
+    summary_content = dbc.Card(
+
+    dbc.CardBody(
+            [
+                html.Div([clinical_sensitivity,
+                                 clinical_specificity,
+                                 analytical_sensitivity,
+                                 analytical_specificity,
+                                 customer_fps,
+                                 clinical_sensitivity_impact,
+                                 clinical_specificity_impact,
+                                 analytical_sensitivity_impact,
+                                 analytical_specificity_impact,
+                                 customer_fp_impact
+                                 ],style={
+                                        "border": "1px solid black",
+                                        "padding": "5px"
+                                      }),
+            ]
+        )
+    )    
+    affected_samples_content = dbc.Card(
+      dbc.CardBody(
+        [
+          html.H1("Coming Soon")
+        ]
         
+      )
+    )
+
+    """
+    Build Data Review Tabs Component 
+    """
+    data_review_tabs = dbc.Tabs(
+      children=[
+          dbc.Tab(summary_content, label="Data Summary", id='data-summary'),
+          dbc.Tab(affected_samples_content, label="Affected Samples", id='affected-samples')
+      ], id='summary-tab'
+    )
+
+
+
+
     layout = html.Div([settings,
                        uploaded_data,
                        html.Div([html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
@@ -237,15 +321,8 @@ def serve_layout():
                                         "padding": "10px"
                                       }
                                 ),
-                       html.Div([clinical_sensitivity,
-                                 clinical_specificity,
-                                 analytical_sensitivity,
-                                 analytical_specificity,
-                                 customer_fp_label, customer_fps
-                                 ],style={
-                                        "border": "1px solid black",
-                                        "padding": "10px"
-                                      }),
+                       data_review_tabs,
+                       
                       ])
     
     return layout
@@ -277,6 +354,7 @@ def store_uploaded_data(uploaded_data):
     specimen_type_options = {}
     for specimen_type  in dataframe['Target Setting Specimen Type'].unique():
       specimen_type_options[specimen_type] = specimen_type
+    specimen_type_options['All'] = 'All'
     return specimen_type_options
   else:
     return {}
@@ -302,42 +380,80 @@ def get_settings(ct_window, min_ep, min_peak, overall_epr, epr_ct_check, epr, sp
   return settings
 
 @dash_app.callback([Output('clinical-sensitivity','value'),
+                    Output('clinical-sensitivity-impact', 'value'),
                     Output('clinical-specificity','value'),
+                    Output('clinical-specificity-impact', 'value'),
                     Output('analytical-sensitivity','value'),
-                    Output('analytical-specificity','value')],
+                    Output('analytical-sensitivity-impact', 'value'),
+                    Output('analytical-specificity','value'),
+                    Output('analytical-specificity-impact', 'value'),
+                    Output('customer-fps', 'max'),
+                    Output('customer-fps', 'value'),
+                    Output('customer-fps-impact', 'value')],
                    [Input('settings', 'data'),
                     State('uploaded-data', 'data')],
                     prevent_initial_call=True)
-def update_sensitivity_specificity_kpis(settings, uploaded_data):
+def update_sensitivity_specificity_fps_kpis(settings, uploaded_data):
   if uploaded_data:
     dataframe = pd.DataFrame.from_dict(uploaded_data)
     if settings['specimen-type']:
-      dataframe = dataframe[dataframe['Target Setting Specimen Type']==settings['specimen-type']]
+      if settings['specimen-type']!='All':
+        dataframe = dataframe[dataframe['Target Setting Specimen Type']==settings['specimen-type']]
     dataframe_clincial = dataframe[dataframe['Data Source']=='Clinical']
     dataframe_analytical = dataframe[dataframe['Data Source']=='Analytical']
+    
+    original_clinical_sensitivity, original_clinical_specificity = calculate_current_sensitivity_specificity(dataframe_clincial)
+    original_analytical_sensitivity, original_analytical_specificity = calculate_current_sensitivity_specificity(dataframe_analytical)
     clinical_sensitivity, clinical_specificity = calculate_simulated_sensitivity_specificity(dataframe_clincial, settings, 'Far Red')
     analytical_sensitivity, analytical_specificity = calculate_simulated_sensitivity_specificity(dataframe_analytical, settings, 'Far Red')
-    return clinical_sensitivity*100, clinical_specificity*100, analytical_sensitivity*100, analytical_specificity*100
-  else:
-    return dash.no_update
-
-@dash_app.callback(Output('customer-fps', 'max'),
-                   Output('customer-fps', 'value'),
-                   [Input('settings', 'data'),
-                    State('uploaded-data', 'data')])
-def get_customer_fps(settings, uploaded_data):
-  if uploaded_data:
     
-    dataframe = pd.DataFrame.from_dict(uploaded_data)
-    if settings['specimen-type']:
-      dataframe = dataframe[dataframe['Target Setting Specimen Type']==settings['specimen-type']]
     dataframe_customer = dataframe[dataframe['Data Source']=='Customer']
     dataframe_customer['Simulated Target Result'] = check_cutoffs(dataframe_customer, settings, 'Far Red')
-
-    return len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG'])
+    
+    return clinical_sensitivity*100, ((clinical_sensitivity-original_clinical_sensitivity)*100).round(2), clinical_specificity*100, ((clinical_specificity-original_clinical_specificity)*100).round(2), analytical_sensitivity*100, ((analytical_sensitivity-original_analytical_sensitivity)*100).round(2), analytical_specificity*100, ((analytical_specificity-original_analytical_specificity)*100).round(2), len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']) - len(dataframe_customer)
   else:
-
     return dash.no_update
+
+@dash_app.callback(Output('clinical-sensitivity-impact','color'),
+              Input('clinical-sensitivity-impact','value'), prevent_initial_call=True)
+def update_clinical_sensitivity_color(value):
+  if value < 0:
+    return 'red'
+  else:
+    return 'green'
+
+@dash_app.callback(Output('clinical-specificity-impact','color'),
+              Input('clinical-specificity-impact','value'), prevent_initial_call=True)
+def update_clinical_sensitivity_color(value):
+  if value < 0:
+    return 'red'
+  else:
+    return 'green'\
+
+@dash_app.callback(Output('analytical-sensitivity-impact','color'),
+              Input('analytical-sensitivity-impact','value'), prevent_initial_call=True)
+def update_clinical_sensitivity_color(value):
+  if value < 0:
+    return 'red'
+  else:
+    return 'green'
+
+@dash_app.callback(Output('analytical-specificity-impact','color'),
+              Input('analytical-specificity-impact','value'), prevent_initial_call=True)
+def update_clinical_sensitivity_color(value):
+  if value < 0:
+    return 'red'
+  else:
+    return 'green'
+
+
+@dash_app.callback(Output('customer-fps-impact','color'),
+                   Input('customer-fps-impact','value'), prevent_initial_call=True)
+def update_clinical_sensitivity_color(value):
+  if value <= 0:
+    return 'green'
+  else:
+    return 'red'
 
 
 
