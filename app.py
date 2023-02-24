@@ -370,29 +370,28 @@ def serve_layout():
       ], id='summary-tab'
     )
 
-
-
-
-    layout = html.Div(children=[settings,
+    
+    return html.Div(children=[settings,
                        uploaded_data,
-                       html.Div([html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
+
+                       html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
                        style={
                               "border": "1px solid black",
                               "padding": "10px"
                               }
                                 ),
                        
-                       html.Div([
-                                html.Div([html.H3("Set ADF Parameter Settings")],style={
+                       html.Div(children=[
+                                html.Div(children=[html.H3("Set ADF Parameter Settings")],style={
                                         "padding": "10px"
                                       }), 
-                                html.Div([ct_range_label, valid_ct_window_adjustment], style=cutoff_selection_style),
-                                html.Div([min_ep_label, min_ep_cutoff], style=cutoff_selection_style),
-                                html.Div([min_peak_label, min_peak_cutoff], style=cutoff_selection_style),
-                                html.Div([overall_epr_threshold_label, overall_epr_threshold_cutoff], style=cutoff_selection_style),
-                                html.Div([epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style=cutoff_selection_style),
-                                html.Div([epr_threshold_label, epr_threshold_cutoff], style=cutoff_selection_style),
-                                html.Div([specimen_type_selection_label, specimen_type_selection], style=cutoff_selection_style)
+                                html.Div(children=[ct_range_label, valid_ct_window_adjustment], style=cutoff_selection_style),
+                                html.Div(children=[min_ep_label, min_ep_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[min_peak_label, min_peak_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[epr_threshold_label, epr_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[specimen_type_selection_label, specimen_type_selection], style=cutoff_selection_style)
                                 ],
                                 style={
                                         "border": "1px solid black",
@@ -402,8 +401,6 @@ def serve_layout():
                        data_review_tabs,
                        
                       ])
-    
-    return layout
 
 dash_app.layout = serve_layout
 
