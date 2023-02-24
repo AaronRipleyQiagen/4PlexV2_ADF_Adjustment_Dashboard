@@ -11,8 +11,7 @@ import numpy as np
 import base64
 import io
 
-
-dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI])
+dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI], suppress_callback_exceptions=True)
 app = dash_app.server
 #dash_app.title = 'NeuMoDx Assay Tuner'
 
