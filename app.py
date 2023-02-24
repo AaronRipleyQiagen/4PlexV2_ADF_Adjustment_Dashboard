@@ -145,7 +145,7 @@ def serve_layout():
     ct_range_marks = {}
     for mark in range(0,50,5):
       ct_range_marks[mark] = {'label':str(mark)}
-    valid_ct_window_adjustment = dcc.RangeSlider(0, 50, 1, value=[11, 37], marks=ct_range_marks, id='ct-window-threshold')
+    valid_ct_window_adjustment = dcc.RangeSlider(0, 50, 1, value=[11, 37],  id='ct-window-threshold')
     
     min_ep_label = html.Label("Set Minimum Endpoint Fluorescence")
     
@@ -156,7 +156,7 @@ def serve_layout():
     for mark in range(0,5000,500):
       ep_marks[mark] = {'label':str(mark)}
 
-    min_ep_cutoff = dcc.Slider(0, 5000, 100, value=1200, marks=ep_marks, included=False, id='min-ep-threshold')
+    min_ep_cutoff = dcc.Slider(0, 5000, 100, value=1200,  included=False, id='min-ep-threshold')
     
     """
     Build Min Peak Cutoff Components
@@ -169,7 +169,7 @@ def serve_layout():
       min_peak_marks[mark] = {'label':str(mark)}
 
     
-    min_peak_cutoff = dcc.Slider(75, 150, 1, value=75, marks=min_peak_marks, included=False, id='min-peak-threshold')
+    min_peak_cutoff = dcc.Slider(75, 150, 1, value=75, included=False, id='min-peak-threshold')
 
     """
     Build EPR Check Ct Threhsold Cutoff Components
@@ -182,7 +182,7 @@ def serve_layout():
     for mark in range(20,40,2):
       epr_check_ct_threshold_marks[mark] = {'label':str(mark)}
 
-    epr_check_ct_threshold_cutoff = dcc.Slider(20, 40, 1, value=30, marks=epr_check_ct_threshold_marks, included=False, id='epr-ct-check-threshold')
+    epr_check_ct_threshold_cutoff = dcc.Slider(20, 40, 1, value=30,  included=False, id='epr-ct-check-threshold')
 
 
     """
@@ -197,7 +197,7 @@ def serve_layout():
 
       epr_threshold_marks[mark] = {'label':str(round(mark, 2))}
 
-    epr_threshold_cutoff = dcc.Slider(1, 1.30, .01, value=1.15, marks=epr_threshold_marks, included=False, id='epr-threshold')
+    epr_threshold_cutoff = dcc.Slider(1, 1.30, .01, value=1.15, included=False, id='epr-threshold')
     
 
     """
@@ -212,7 +212,7 @@ def serve_layout():
 
       overall_epr_threshold_marks[mark] = {'label':str(round(mark, 2))}
 
-    overall_epr_threshold_cutoff = dcc.Slider(1, 1.50, .01, value=1.05, marks=overall_epr_threshold_marks, included=False, id='overall-epr-threshold')
+    overall_epr_threshold_cutoff = dcc.Slider(1, 1.50, .01, value=1.05, included=False, id='overall-epr-threshold')
 
 
     """
