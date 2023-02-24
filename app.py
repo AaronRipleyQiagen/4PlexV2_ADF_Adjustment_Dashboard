@@ -4,7 +4,7 @@ from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
 import plotly.express as px
-#import dash_ag_grid as dag
+import dash_ag_grid as dag
 import dash_daq as daq
 import pandas as pd
 import numpy as np
@@ -407,134 +407,134 @@ def serve_layout():
 
 dash_app.layout = serve_layout
 
-@dash_app.callback([Output('uploaded-data', 'data'),
-                    Output('uploaded-data-msg', 'children')],
-                   Input('upload-csv', 'contents'))
-def store_uploaded_data(contents):
-    if contents is not None:
-        content_type, content_string = contents.split(',')
-        decoded = base64.b64decode(content_string)
-        dashboard_data = pd.read_csv(io.BytesIO(decoded))
-        dashboard_data['Reported Result'] = dashboard_data['Far Red Target Localized Result'].replace({'TargetNotAmplified':'NEG', 'TargetAmplified':'POS'})
-        dashboard_data_valid = dashboard_data[dashboard_data['Reported Result'].isin(['POS', 'NEG'])]
-        dashboard_data_valid = dashboard_data_valid[dashboard_data_valid['Far Red Target Expected Result']!='Exclude']
-        dashboard_data_valid['Expected Result'] = np.where(dashboard_data_valid['Far Red Target Expected Result']=='NEG', "NEG", "POS")
-        data_dict = dashboard_data_valid.to_dict('records')
-        return data_dict, "Successfully uploaded data for {} valid samples".format(str(len(dashboard_data_valid)))
-    else:
-      return dash.no_update
+# @dash_app.callback([Output('uploaded-data', 'data'),
+#                     Output('uploaded-data-msg', 'children')],
+#                    Input('upload-csv', 'contents'))
+# def store_uploaded_data(contents):
+#     if contents is not None:
+#         content_type, content_string = contents.split(',')
+#         decoded = base64.b64decode(content_string)
+#         dashboard_data = pd.read_csv(io.BytesIO(decoded))
+#         dashboard_data['Reported Result'] = dashboard_data['Far Red Target Localized Result'].replace({'TargetNotAmplified':'NEG', 'TargetAmplified':'POS'})
+#         dashboard_data_valid = dashboard_data[dashboard_data['Reported Result'].isin(['POS', 'NEG'])]
+#         dashboard_data_valid = dashboard_data_valid[dashboard_data_valid['Far Red Target Expected Result']!='Exclude']
+#         dashboard_data_valid['Expected Result'] = np.where(dashboard_data_valid['Far Red Target Expected Result']=='NEG', "NEG", "POS")
+#         data_dict = dashboard_data_valid.to_dict('records')
+#         return data_dict, "Successfully uploaded data for {} valid samples".format(str(len(dashboard_data_valid)))
+#     else:
+#       return dash.no_update
 
-@dash_app.callback(Output('specimen-type-selection', 'options'),
-              Input('uploaded-data', 'data'), prevent_initial_call=True)
-def store_uploaded_data(uploaded_data):
-  if uploaded_data:
-    dataframe = pd.DataFrame.from_dict(uploaded_data)
-    specimen_type_options = {}
-    for specimen_type  in dataframe['Target Setting Specimen Type'].unique():
-      specimen_type_options[specimen_type] = specimen_type
-    specimen_type_options['All'] = 'All'
-    return specimen_type_options
-  else:
-    return dash.no_update
+# @dash_app.callback(Output('specimen-type-selection', 'options'),
+#               Input('uploaded-data', 'data'), prevent_initial_call=True)
+# def store_uploaded_data(uploaded_data):
+#   if uploaded_data:
+#     dataframe = pd.DataFrame.from_dict(uploaded_data)
+#     specimen_type_options = {}
+#     for specimen_type  in dataframe['Target Setting Specimen Type'].unique():
+#       specimen_type_options[specimen_type] = specimen_type
+#     specimen_type_options['All'] = 'All'
+#     return specimen_type_options
+#   else:
+#     return dash.no_update
 
-@dash_app.callback(Output('settings', 'data'),
-                   [Input('ct-window-threshold', 'value'),
-                   Input('min-ep-threshold', 'value'),
-                   Input('min-peak-threshold', 'value'),
-                   Input('overall-epr-threshold', 'value'),
-                   Input('epr-ct-check-threshold', 'value'),
-                   Input('epr-threshold', 'value'),
-                   Input('specimen-type-selection','value')
-                   ], prevent_intial_call=True)
-def get_settings(ct_window, min_ep, min_peak, overall_epr, epr_ct_check, epr, specimen_type):
-  if ct_window:
-    settings = {'minimum-peak-cyle-threshold':ct_window[0],
-                'maximum-peak-cycle-threshold':ct_window[1],
-                'minimum-ep-threshold':min_ep,
-                'minimum-peak-threshold':min_peak,
-                'overall-epr-check-threshold':overall_epr,
-                'epr-check-ct-threshold':epr_ct_check,
-                'epr-check-threshold':epr,
-                'specimen-type':specimen_type}
+# @dash_app.callback(Output('settings', 'data'),
+#                    [Input('ct-window-threshold', 'value'),
+#                    Input('min-ep-threshold', 'value'),
+#                    Input('min-peak-threshold', 'value'),
+#                    Input('overall-epr-threshold', 'value'),
+#                    Input('epr-ct-check-threshold', 'value'),
+#                    Input('epr-threshold', 'value'),
+#                    Input('specimen-type-selection','value')
+#                    ], prevent_intial_call=True)
+# def get_settings(ct_window, min_ep, min_peak, overall_epr, epr_ct_check, epr, specimen_type):
+#   if ct_window:
+#     settings = {'minimum-peak-cyle-threshold':ct_window[0],
+#                 'maximum-peak-cycle-threshold':ct_window[1],
+#                 'minimum-ep-threshold':min_ep,
+#                 'minimum-peak-threshold':min_peak,
+#                 'overall-epr-check-threshold':overall_epr,
+#                 'epr-check-ct-threshold':epr_ct_check,
+#                 'epr-check-threshold':epr,
+#                 'specimen-type':specimen_type}
 
-    return settings
-  else:
-    return dash.no_update
+#     return settings
+#   else:
+#     return dash.no_update
 
-@dash_app.callback([Output('clinical-sensitivity','value'),
-                    Output('clinical-sensitivity-impact', 'value'),
-                    Output('clinical-specificity','value'),
-                    Output('clinical-specificity-impact', 'value'),
-                    Output('analytical-sensitivity','value'),
-                    Output('analytical-sensitivity-impact', 'value'),
-                    Output('analytical-specificity','value'),
-                    Output('analytical-specificity-impact', 'value'),
-                    Output('customer-fps', 'max'),
-                    Output('customer-fps', 'value'),
-                    Output('customer-fps-impact', 'value')],
-                   [Input('settings', 'data'),
-                    State('uploaded-data', 'data')],
-                    prevent_initial_call=True)
-def update_sensitivity_specificity_fps_kpis(settings, uploaded_data):
-  if uploaded_data:
-    dataframe = pd.DataFrame.from_dict(uploaded_data)
-    if settings['specimen-type']:
-      if settings['specimen-type']!='All':
-        dataframe = dataframe[dataframe['Target Setting Specimen Type']==settings['specimen-type']]
-    dataframe_clincial = dataframe[dataframe['Data Source']=='Clinical']
-    dataframe_analytical = dataframe[dataframe['Data Source']=='Analytical']
+# @dash_app.callback([Output('clinical-sensitivity','value'),
+#                     Output('clinical-sensitivity-impact', 'value'),
+#                     Output('clinical-specificity','value'),
+#                     Output('clinical-specificity-impact', 'value'),
+#                     Output('analytical-sensitivity','value'),
+#                     Output('analytical-sensitivity-impact', 'value'),
+#                     Output('analytical-specificity','value'),
+#                     Output('analytical-specificity-impact', 'value'),
+#                     Output('customer-fps', 'max'),
+#                     Output('customer-fps', 'value'),
+#                     Output('customer-fps-impact', 'value')],
+#                    [Input('settings', 'data'),
+#                     State('uploaded-data', 'data')],
+#                     prevent_initial_call=True)
+# def update_sensitivity_specificity_fps_kpis(settings, uploaded_data):
+#   if uploaded_data:
+#     dataframe = pd.DataFrame.from_dict(uploaded_data)
+#     if settings['specimen-type']:
+#       if settings['specimen-type']!='All':
+#         dataframe = dataframe[dataframe['Target Setting Specimen Type']==settings['specimen-type']]
+#     dataframe_clincial = dataframe[dataframe['Data Source']=='Clinical']
+#     dataframe_analytical = dataframe[dataframe['Data Source']=='Analytical']
     
-    original_clinical_sensitivity, original_clinical_specificity = calculate_current_sensitivity_specificity(dataframe_clincial)
-    original_analytical_sensitivity, original_analytical_specificity = calculate_current_sensitivity_specificity(dataframe_analytical)
-    clinical_sensitivity, clinical_specificity = calculate_simulated_sensitivity_specificity(dataframe_clincial, settings, 'Far Red')
-    analytical_sensitivity, analytical_specificity = calculate_simulated_sensitivity_specificity(dataframe_analytical, settings, 'Far Red')
+#     original_clinical_sensitivity, original_clinical_specificity = calculate_current_sensitivity_specificity(dataframe_clincial)
+#     original_analytical_sensitivity, original_analytical_specificity = calculate_current_sensitivity_specificity(dataframe_analytical)
+#     clinical_sensitivity, clinical_specificity = calculate_simulated_sensitivity_specificity(dataframe_clincial, settings, 'Far Red')
+#     analytical_sensitivity, analytical_specificity = calculate_simulated_sensitivity_specificity(dataframe_analytical, settings, 'Far Red')
     
-    dataframe_customer = dataframe[dataframe['Data Source']=='Customer']
-    dataframe_customer['Simulated Target Result'] = check_cutoffs(dataframe_customer, settings, 'Far Red')
+#     dataframe_customer = dataframe[dataframe['Data Source']=='Customer']
+#     dataframe_customer['Simulated Target Result'] = check_cutoffs(dataframe_customer, settings, 'Far Red')
     
-    return clinical_sensitivity*100, ((clinical_sensitivity-original_clinical_sensitivity)*100).round(2), clinical_specificity*100, ((clinical_specificity-original_clinical_specificity)*100).round(2), analytical_sensitivity*100, ((analytical_sensitivity-original_analytical_sensitivity)*100).round(2), analytical_specificity*100, ((analytical_specificity-original_analytical_specificity)*100).round(2), len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']) - len(dataframe_customer)
-  else:
-    return dash.no_update
+#     return clinical_sensitivity*100, ((clinical_sensitivity-original_clinical_sensitivity)*100).round(2), clinical_specificity*100, ((clinical_specificity-original_clinical_specificity)*100).round(2), analytical_sensitivity*100, ((analytical_sensitivity-original_analytical_sensitivity)*100).round(2), analytical_specificity*100, ((analytical_specificity-original_analytical_specificity)*100).round(2), len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']) - len(dataframe_customer)
+#   else:
+#     return dash.no_update
 
-@dash_app.callback(Output('clinical-sensitivity-impact','color'),
-              Input('clinical-sensitivity-impact','value'), prevent_initial_call=True)
-def update_clinical_sensitivity_color(value):
-  if value < 0:
-    return 'red'
-  else:
-    return 'green'
+# @dash_app.callback(Output('clinical-sensitivity-impact','color'),
+#               Input('clinical-sensitivity-impact','value'), prevent_initial_call=True)
+# def update_clinical_sensitivity_color(value):
+#   if value < 0:
+#     return 'red'
+#   else:
+#     return 'green'
 
-@dash_app.callback(Output('clinical-specificity-impact','color'),
-              Input('clinical-specificity-impact','value'), prevent_initial_call=True)
-def update_clinical_sensitivity_color(value):
-  if value < 0:
-    return 'red'
-  else:
-    return 'green'
+# @dash_app.callback(Output('clinical-specificity-impact','color'),
+#               Input('clinical-specificity-impact','value'), prevent_initial_call=True)
+# def update_clinical_sensitivity_color(value):
+#   if value < 0:
+#     return 'red'
+#   else:
+#     return 'green'
 
-@dash_app.callback(Output('analytical-sensitivity-impact','color'),
-              Input('analytical-sensitivity-impact','value'), prevent_initial_call=True)
-def update_clinical_sensitivity_color(value):
-  if value < 0:
-    return 'red'
-  else:
-    return 'green'
+# @dash_app.callback(Output('analytical-sensitivity-impact','color'),
+#               Input('analytical-sensitivity-impact','value'), prevent_initial_call=True)
+# def update_clinical_sensitivity_color(value):
+#   if value < 0:
+#     return 'red'
+#   else:
+#     return 'green'
 
-@dash_app.callback(Output('analytical-specificity-impact','color'),
-              Input('analytical-specificity-impact','value'), prevent_initial_call=True)
-def update_clinical_sensitivity_color(value):
-  if value < 0:
-    return 'red'
-  else:
-    return 'green'
+# @dash_app.callback(Output('analytical-specificity-impact','color'),
+#               Input('analytical-specificity-impact','value'), prevent_initial_call=True)
+# def update_clinical_sensitivity_color(value):
+#   if value < 0:
+#     return 'red'
+#   else:
+#     return 'green'
 
-@dash_app.callback(Output('customer-fps-impact','color'),
-                   Input('customer-fps-impact','value'), prevent_initial_call=True)
-def update_clinical_sensitivity_color(value):
-  if value <= 0:
-    return 'green'
-  else:
-    return 'red'
+# @dash_app.callback(Output('customer-fps-impact','color'),
+#                    Input('customer-fps-impact','value'), prevent_initial_call=True)
+# def update_clinical_sensitivity_color(value):
+#   if value <= 0:
+#     return 'green'
+#   else:
+#     return 'red'
 
 if __name__ == '__main__':
     
