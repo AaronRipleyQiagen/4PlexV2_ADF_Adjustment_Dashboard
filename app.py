@@ -282,6 +282,12 @@ def serve_layout():
       )
     )
 
+
+    """
+    Build the Card Body for Affected Sample Results
+    """
+
+
     """
     Build Data Review Tabs Component 
     """
