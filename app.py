@@ -370,7 +370,7 @@ def serve_layout():
       ], id='summary-tab'
     )
 
-    
+    return html.H1("Hello There :)")
     return html.Div(children=[settings,
                        uploaded_data,
 
