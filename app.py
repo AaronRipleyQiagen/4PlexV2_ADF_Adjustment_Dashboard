@@ -370,7 +370,15 @@ def serve_layout():
       ], id='summary-tab'
     )
 
-    return html.H1("Hello There :)")
+    return html.Div(children=[settings,
+                       uploaded_data,
+
+                       html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
+                       style={
+                              "border": "1px solid black",
+                              "padding": "10px"
+                              }
+                                )])
     return html.Div(children=[settings,
                        uploaded_data,
 
