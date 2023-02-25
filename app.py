@@ -145,7 +145,7 @@ def serve_layout():
     ct_range_marks = {}
     for mark in range(0,50,5):
       ct_range_marks[mark] = {'label':str(mark)}
-    valid_ct_window_adjustment = dcc.RangeSlider(0, 50, 1, value=[11, 37],  id='ct-window-threshold')
+    valid_ct_window_adjustment = dcc.RangeSlider(0, 50, 1, value=[11, 37], marks=ct_range_marks, id='ct-window-threshold')
     
     min_ep_label = html.Label("Set Minimum Endpoint Fluorescence")
     
@@ -156,7 +156,7 @@ def serve_layout():
     for mark in range(0,5000,500):
       ep_marks[mark] = {'label':str(mark)}
 
-    min_ep_cutoff = dcc.Slider(0, 5000, 100, value=1200,  included=False, id='min-ep-threshold')
+    min_ep_cutoff = dcc.Slider(0, 5000, 100, value=1200, marks=ep_marks, included=False, id='min-ep-threshold')
     
     """
     Build Min Peak Cutoff Components
@@ -169,7 +169,7 @@ def serve_layout():
       min_peak_marks[mark] = {'label':str(mark)}
 
     
-    min_peak_cutoff = dcc.Slider(75, 150, 1, value=75, included=False, id='min-peak-threshold')
+    min_peak_cutoff = dcc.Slider(75, 150, 1, value=75, marks=min_peak_marks, included=False, id='min-peak-threshold')
 
     """
     Build EPR Check Ct Threhsold Cutoff Components
@@ -182,7 +182,7 @@ def serve_layout():
     for mark in range(20,40,2):
       epr_check_ct_threshold_marks[mark] = {'label':str(mark)}
 
-    epr_check_ct_threshold_cutoff = dcc.Slider(20, 40, 1, value=30,  included=False, id='epr-ct-check-threshold')
+    epr_check_ct_threshold_cutoff = dcc.Slider(20, 40, 1, value=30, marks=epr_check_ct_threshold_marks, included=False, id='epr-ct-check-threshold')
 
 
     """
@@ -370,55 +370,49 @@ def serve_layout():
       ], id='summary-tab'
     )
 
-    return html.Div(children=[settings,
-                       uploaded_data,
+    # return html.Div(children=[settings,
+    #                    uploaded_data,
 
-                       html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
-                       style={
-                              "border": "1px solid black",
-                              "padding": "10px"
-                              }
-                                ),
-                       html.Div(children=[
-                                html.Div(children=[html.H3("Set ADF Parameter Settings")],
-                                         style={
-                                        "padding": "10px"
-                                              }), 
-                                html.Div(children=[ct_range_label, valid_ct_window_adjustment], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[min_ep_label, min_ep_cutoff], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[min_peak_label, min_peak_cutoff], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_cutoff], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[epr_threshold_label, epr_threshold_cutoff], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'}),
-                                html.Div(children=[specimen_type_selection_label, specimen_type_selection], style={'width': '50%',
-                              'display': 'inline-block',
-                              'vertical-align': 'middle',
-                              'horizontal-align': 'left'})
-                                ],
-                                style={
-                                        "border": "1px solid black",
-                                        "padding": "10px"
-                                      }
-                                ),        
-                                ])
+    #                    html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
+    #                    style={
+    #                           "border": "1px solid black",
+    #                           "padding": "10px"
+    #                           }
+    #                             ),
+    #                    html.Div(children=[
+    #                             html.Div(children=[html.H3("Set ADF Parameter Settings")],
+    #                                      style={
+    #                                     "padding": "10px"
+    #                                           }), 
+    #                             html.Div(children=[ct_range_label, valid_ct_window_adjustment], style={'width': '50%',
+    #                           'display': 'inline-block',
+    #                           'vertical-align': 'middle',
+    #                           'horizontal-align': 'left'}),
+    #                             html.Div(children=[min_ep_label, min_ep_cutoff], style={'width': '50%',
+    #                           'display': 'inline-block',
+    #                           'vertical-align': 'middle',
+    #                           'horizontal-align': 'left'}),
+    #                             html.Div(children=[min_peak_label, min_peak_cutoff], style={'width': '50%',
+    #                           'display': 'inline-block',
+    #                           'vertical-align': 'middle',
+    #                           'horizontal-align': 'left'}),
+    #                             html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_cutoff], style={'width': '50%',
+    #                           'display': 'inline-block',
+    #                           'vertical-align': 'middle',
+    #                           'horizontal-align': 'left'}),
+    #                             html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style={'width': '50%',
+    #                           'display': 'inline-block',
+    #                           'vertical-align': 'middle',
+    #                           'horizontal-align': 'left'}),
+    #                             html.Div(children=[epr_threshold_label, epr_threshold_cutoff], style=cutoff_selection_style),
+    #                             html.Div(children=[specimen_type_selection_label, specimen_type_selection], style=cutoff_selection_style)
+    #                             ],
+    #                             style={
+    #                                     "border": "1px solid black",
+    #                                     "padding": "10px"
+    #                                   }
+    #                             ),        
+    #                             ])
     return html.Div(children=[settings,
                        uploaded_data,
 
@@ -462,7 +456,7 @@ def store_uploaded_data(contents):
         dashboard_data = pd.read_csv(io.BytesIO(decoded))
         dashboard_data['Reported Result'] = dashboard_data['Far Red Target Localized Result'].replace({'TargetNotAmplified':'NEG', 'TargetAmplified':'POS'})
         dashboard_data_valid = dashboard_data[dashboard_data['Reported Result'].isin(['POS', 'NEG'])]
-        dashboard_data_valid = dashboard_data_valid[dashboard_data_valid['Far Red Target Expected Result']!='Exclude']
+        dashboard_data_valid = dashboard_data_valid[~dashboard_data_valid['Far Red Target Expected Result'].isin(['Exclude','LPOS'])]
         dashboard_data_valid['Expected Result'] = np.where(dashboard_data_valid['Far Red Target Expected Result']=='NEG', "NEG", "POS")
         data_dict = dashboard_data_valid.to_dict('records')
         return data_dict, "Successfully uploaded data for {} valid samples".format(str(len(dashboard_data_valid)))
