@@ -193,11 +193,11 @@ def serve_layout():
     
 
     epr_threshold_marks = {}
-    for mark in np.arange(1,1.30,0.02):
+    for mark in range(100,130,2):
 
-      epr_threshold_marks[mark] = {'label':str(round(mark, 2))}
+      epr_threshold_marks[(mark/100)] = {'label':str(round((mark/100), 2))}
 
-    epr_threshold_cutoff = dcc.Slider(1, 1.30, .01, value=1.15, included=False, id='epr-threshold')
+    epr_threshold_cutoff = dcc.Slider(1, 1.30, .01, marks=epr_threshold_marks, value=1.15, included=False, id='epr-threshold')
     
 
     """
@@ -208,11 +208,11 @@ def serve_layout():
     
 
     overall_epr_threshold_marks = {}
-    for mark in np.arange(1,1.50,0.05):
+    for mark in range(100,150,5):
 
-      overall_epr_threshold_marks[mark] = {'label':str(round(mark, 2))}
+      overall_epr_threshold_marks[(mark/100)] = {'label':str(round((mark/100), 2))}
 
-    overall_epr_threshold_cutoff = dcc.Slider(1, 1.50, .01, value=1.05, included=False, id='overall-epr-threshold')
+    overall_epr_threshold_cutoff = dcc.Slider(1, 1.50, .01, marks=overall_epr_threshold_marks, value=1.05, included=False, id='overall-epr-threshold')
 
 
     """
