@@ -83,7 +83,7 @@ def calculate_simulated_sensitivity_specificity(data: pd.DataFrame, settings: di
     simulated_frame['Simulated Target Result'] = check_cutoffs(simulated_frame, settings, target)
     simulated_frame['Classification'] = classify_result(simulated_frame)
     simulated_frame[['TP', 'FP', 'TN', 'FN']] = build_classification_array(simulated_frame)
-    return calculate_sensitivity_specificity(simulated_frame)
+    return calculate_sensitivity_specificity(simulated_frame), simulated_frame
     
 def calculate_current_sensitivity_specificity(data: pd.DataFrame):
     current_frame = data.copy()
@@ -345,20 +345,34 @@ def serve_layout():
             ]
         )
     )    
-    affected_samples_content = dbc.Card(
-      dbc.CardBody(
-        [
-          html.H1("Coming Soon")
-        ]
-        
-      )
-    )
+    
 
 
     """
     Build the Card Body for Affected Sample Results
     """
 
+    affected_samples = dag.AgGrid(
+                enableEnterpriseModules=True,
+                # columnDefs=initial_columnDefs,
+                # rowData=intial_data,
+                columnSize="sizeToFit",
+                defaultColDef=dict(
+                    resizable=True,
+                ),
+                rowSelection='single',
+                # setRowId="id",
+                id='affected-samples-table'
+            )
+
+    affected_samples_content = dbc.Card(
+      dbc.CardBody(
+        [
+          affected_samples
+        ]
+        
+      )
+    )
 
     """
     Build Data Review Tabs Component 
@@ -370,52 +384,18 @@ def serve_layout():
       ], id='summary-tab'
     )
 
-    # return html.Div(children=[settings,
-    #                    uploaded_data,
+    """
+    Build data storage components for affected samples data.
+    """
+    clincial_affected_samples_data = dcc.Store(id='clinical-affected-samples-data', storage_type='session')
+    analytical_affected_samples_data = dcc.Store(id='analytical-affected-samples-data', storage_type='session')
+    customer_fps_affected_samples_data = dcc.Store(id='customer-fps-samples-data', storage_type='session')
 
-    #                    html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
-    #                    style={
-    #                           "border": "1px solid black",
-    #                           "padding": "10px"
-    #                           }
-    #                             ),
-    #                    html.Div(children=[
-    #                             html.Div(children=[html.H3("Set ADF Parameter Settings")],
-    #                                      style={
-    #                                     "padding": "10px"
-    #                                           }), 
-    #                             html.Div(children=[ct_range_label, valid_ct_window_adjustment], style={'width': '50%',
-    #                           'display': 'inline-block',
-    #                           'vertical-align': 'middle',
-    #                           'horizontal-align': 'left'}),
-    #                             html.Div(children=[min_ep_label, min_ep_cutoff], style={'width': '50%',
-    #                           'display': 'inline-block',
-    #                           'vertical-align': 'middle',
-    #                           'horizontal-align': 'left'}),
-    #                             html.Div(children=[min_peak_label, min_peak_cutoff], style={'width': '50%',
-    #                           'display': 'inline-block',
-    #                           'vertical-align': 'middle',
-    #                           'horizontal-align': 'left'}),
-    #                             html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_cutoff], style={'width': '50%',
-    #                           'display': 'inline-block',
-    #                           'vertical-align': 'middle',
-    #                           'horizontal-align': 'left'}),
-    #                             html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style={'width': '50%',
-    #                           'display': 'inline-block',
-    #                           'vertical-align': 'middle',
-    #                           'horizontal-align': 'left'}),
-    #                             html.Div(children=[epr_threshold_label, epr_threshold_cutoff], style=cutoff_selection_style),
-    #                             html.Div(children=[specimen_type_selection_label, specimen_type_selection], style=cutoff_selection_style)
-    #                             ],
-    #                             style={
-    #                                     "border": "1px solid black",
-    #                                     "padding": "10px"
-    #                                   }
-    #                             ),        
-    #                             ])
     return html.Div(children=[settings,
                        uploaded_data,
-
+                       clincial_affected_samples_data,
+                       analytical_affected_samples_data,
+                       customer_fps_affected_samples_data,
                        html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
                        style={
                               "border": "1px solid black",
@@ -510,7 +490,10 @@ def get_settings(ct_window, min_ep, min_peak, overall_epr, epr_ct_check, epr, sp
                     Output('analytical-specificity-impact', 'value'),
                     Output('customer-fps', 'max'),
                     Output('customer-fps', 'value'),
-                    Output('customer-fps-impact', 'value')],
+                    Output('customer-fps-impact', 'value'),
+                    Output('clinical-affected-samples-data', 'data'),
+                    Output('analytical-affected-samples-data','data'),
+                    Output('customer-fps-samples-data', 'data')],
                    [Input('settings', 'data'),
                     State('uploaded-data', 'data')],
                     prevent_initial_call=True)
@@ -525,13 +508,16 @@ def update_sensitivity_specificity_fps_kpis(settings, uploaded_data):
     
     original_clinical_sensitivity, original_clinical_specificity = calculate_current_sensitivity_specificity(dataframe_clincial)
     original_analytical_sensitivity, original_analytical_specificity = calculate_current_sensitivity_specificity(dataframe_analytical)
-    clinical_sensitivity, clinical_specificity = calculate_simulated_sensitivity_specificity(dataframe_clincial, settings, 'Far Red')
-    analytical_sensitivity, analytical_specificity = calculate_simulated_sensitivity_specificity(dataframe_analytical, settings, 'Far Red')
+    (clinical_sensitivity, clinical_specificity), dataframe_clinical = calculate_simulated_sensitivity_specificity(dataframe_clincial, settings, 'Far Red')
+    (analytical_sensitivity, analytical_specificity), dataframe_analytical = calculate_simulated_sensitivity_specificity(dataframe_analytical, settings, 'Far Red')
     
+    dataframe_clinical_changes = dataframe_clinical[dataframe_clinical['Simulated Target Result']!=dataframe_clinical['Reported Result']]
+    dataframe_analytical_changes = dataframe_analytical[dataframe_analytical['Simulated Target Result']!=dataframe_analytical['Reported Result']]
+
     dataframe_customer = dataframe[dataframe['Data Source']=='Customer']
     dataframe_customer['Simulated Target Result'] = check_cutoffs(dataframe_customer, settings, 'Far Red')
-    
-    return clinical_sensitivity*100, ((clinical_sensitivity-original_clinical_sensitivity)*100).round(2), clinical_specificity*100, ((clinical_specificity-original_clinical_specificity)*100).round(2), analytical_sensitivity*100, ((analytical_sensitivity-original_analytical_sensitivity)*100).round(2), analytical_specificity*100, ((analytical_specificity-original_analytical_specificity)*100).round(2), len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']) - len(dataframe_customer)
+    dataframe_customer_changes = dataframe_customer[dataframe_customer['Simulated Target Result']!=dataframe_customer['Reported Result']]
+    return clinical_sensitivity*100, ((clinical_sensitivity-original_clinical_sensitivity)*100).round(2), clinical_specificity*100, ((clinical_specificity-original_clinical_specificity)*100).round(2), analytical_sensitivity*100, ((analytical_sensitivity-original_analytical_sensitivity)*100).round(2), analytical_specificity*100, ((analytical_specificity-original_analytical_specificity)*100).round(2), len(dataframe_customer), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']), len(dataframe_customer[dataframe_customer['Simulated Target Result']!='NEG']) - len(dataframe_customer), dataframe_clinical_changes.to_dict('records'), dataframe_analytical_changes.to_dict('records'), dataframe_customer_changes.to_dict('records')
   else:
     return dash.no_update
 
@@ -574,6 +560,33 @@ def update_clinical_sensitivity_color(value):
     return 'green'
   else:
     return 'red'
+
+@dash_app.callback([Output('affected-samples-table', 'rowData'),
+                    Output('affected-samples-table', 'columnDefs')],
+                   [Input('clinical-affected-samples-data', 'data'),
+                    Input('analytical-affected-samples-data', 'data'),
+                    Input('customer-fps-samples-data', 'data'),
+                   ],prevent_initial_call=True)
+def get_affected_sample_results(clinical_samples, analytical_samples, customer_fps):
+  clinical_samples_dataframe = pd.DataFrame.from_dict(clinical_samples)
+  analytical_samples_dataframe = pd.DataFrame.from_dict(analytical_samples)
+  customer_fps_dataframe = pd.DataFrame.from_dict(customer_fps)
+  all_affected_samples = pd.concat([clinical_samples_dataframe,analytical_samples_dataframe,customer_fps_dataframe])
+  print(all_affected_samples)
+  visable_columns = ['Data Source', 'Sample ID', 'Protocol', 'Target Setting Specimen Type', 'Expected Result', 'Reported Result', 'Simulated Target Result']
+  column_definitions = []
+  for column in all_affected_samples.columns:
+      if column == 'Data Source' or column == 'Protocol' or column == 'Target Setting Specimen Type':
+        column_definitions.append(
+              {"headerName": column, "field": column, "rowGroup": True, "filter": True})
+      elif column in visable_columns:
+          column_definitions.append(
+              {"headerName": column, "field": column, "filter": True})
+      else:
+          column_definitions.append(
+              {"headerName": column, "field": column, "filter": True, "hide": True})
+
+  return all_affected_samples.to_dict('records'),column_definitions
 
 if __name__ == '__main__':
     
