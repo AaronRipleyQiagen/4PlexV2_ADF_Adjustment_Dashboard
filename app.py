@@ -13,7 +13,7 @@ import io
 
 dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI], suppress_callback_exceptions=True)
 app = dash_app.server
-#dash_app.title = 'NeuMoDx Assay Tuner'
+dash_app.title = 'NeuMoDx ADF Tuner'
 
 def check_cutoffs(data:pd.DataFrame, settings:dict, target:str):
   target_result_frame = data.copy()
