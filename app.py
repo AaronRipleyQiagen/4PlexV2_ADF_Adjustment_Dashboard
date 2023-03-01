@@ -374,14 +374,14 @@ def serve_layout():
                 id='affected-samples-table'
             )
 
-    affected_samples_content = dbc.Card(
+    affected_samples_content =  dcc.Loading(id='updating-tables', type='dot', children=[dbc.Card(
       dbc.CardBody(
         [
           affected_samples
         ]
         
       )
-    )
+    )])
 
     """
     Build Data Review Tabs Component 
