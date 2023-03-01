@@ -11,7 +11,7 @@ import numpy as np
 import base64
 import io
 
-dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI], suppress_callback_exceptions=True)
+dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.COSMO], suppress_callback_exceptions=True)
 app = dash_app.server
 dash_app.title = 'NeuMoDx ADF Tuner'
 
@@ -101,11 +101,18 @@ def serve_layout():
                               'display': 'inline-block',
                               'vertical-align': 'middle',
                               'horizontal-align': 'left'}
-
+    
+    label_style = {'width': '35%',
+                  'display': 'inline-block',
+                  'vertical-align': 'middle',
+                  'horizontal-align': 'left'}
+    
+    
     sensitivity_specificity_style = {'width': '20%',
                               'display': 'inline-block',
                               'vertical-align': 'Top',
                               'horizontal-align': 'left'}
+    
     customer_fp_style = {'width': '100%',
                           'display': 'inline-block',
                           'vertical-align': 'middle',
@@ -135,19 +142,18 @@ def serve_layout():
 
     uploaded_data = dcc.Store(id='uploaded-data', storage_type='memory')
     uploaded_data_msg = html.P(id='uploaded-data-msg')
-
     
     """
     Build Ct Range Cutoff Components
     """
-    ct_range_label = html.Label("Set Min / Max Ct Cycle")
+    ct_range_label = html.Label("Set Min / Max Ct Cycle", style=label_style)
     
     ct_range_marks = {}
     for mark in range(0,50,5):
       ct_range_marks[mark] = {'label':str(mark)}
     valid_ct_window_adjustment = dcc.RangeSlider(0, 50, 1, value=[11, 37], marks=ct_range_marks, id='ct-window-threshold')
-    
-    min_ep_label = html.Label("Set Minimum Endpoint Fluorescence")
+    ct_range_values = html.Label(id='ct-range-values', style=label_style)
+    min_ep_label = html.Label("Set Minimum Endpoint Fluorescence", style=label_style)
     
     """
     Build Minimum EP Cutoff Components
@@ -157,12 +163,12 @@ def serve_layout():
       ep_marks[mark] = {'label':str(mark)}
 
     min_ep_cutoff = dcc.Slider(0, 5000, 100, value=1200, marks=ep_marks, included=False, id='min-ep-threshold')
-    
+    min_ep_cutoff_value = html.Label(id='min-ep-cutoff-value', style=label_style)
     """
     Build Min Peak Cutoff Components
     """
 
-    min_peak_label = html.Label("Set Minimum Peak Height")
+    min_peak_label = html.Label("Set Minimum Peak Height",style=label_style)
 
     min_peak_marks = {}
     for mark in range(75,150,5):
@@ -170,11 +176,11 @@ def serve_layout():
 
     
     min_peak_cutoff = dcc.Slider(75, 150, 1, value=75, marks=min_peak_marks, included=False, id='min-peak-threshold')
-
+    min_peak_cutoff_value = html.Label(id='min-peak-cutoff-value', style=label_style)
     """
     Build EPR Check Ct Threhsold Cutoff Components
     """
-    epr_check_ct_threshold_label = html.Label("Set EPR Ct Check Threshold")
+    epr_check_ct_threshold_label = html.Label("Set EPR Ct Check Threshold", style=label_style)
 
     
 
@@ -183,12 +189,12 @@ def serve_layout():
       epr_check_ct_threshold_marks[mark] = {'label':str(mark)}
 
     epr_check_ct_threshold_cutoff = dcc.Slider(20, 40, 1, value=30, marks=epr_check_ct_threshold_marks, included=False, id='epr-ct-check-threshold')
-
+    epr_check_ct_threshold_cutoff_value = html.Label(id='epr-ct-check-threshold-cutoff-value', style=label_style)
 
     """
     Build EPR Check Threhsold Cutoff Components
     """
-    epr_threshold_label = html.Label("Set EPR Check Threshold")
+    epr_threshold_label = html.Label("Set EPR Check Threshold", style=label_style)
 
     
 
@@ -198,13 +204,13 @@ def serve_layout():
       epr_threshold_marks[(mark/100)] = {'label':str(round((mark/100), 2))}
 
     epr_threshold_cutoff = dcc.Slider(1, 1.30, .01, marks=epr_threshold_marks, value=1.15, included=False, id='epr-threshold')
-    
+    epr_threshold_value = html.Label(id='epr-threshold-value', style=label_style)
 
     """
     Build Overall EPR Check Threhsold Cutoff Components
     """
-    overall_epr_threshold_label = html.Label("Set Overall EPR Check Threshold")
-
+    overall_epr_threshold_label = html.Label("Set Overall EPR Check Threshold", style=label_style)
+    
     
 
     overall_epr_threshold_marks = {}
@@ -213,13 +219,13 @@ def serve_layout():
       overall_epr_threshold_marks[(mark/100)] = {'label':str(round((mark/100), 2))}
 
     overall_epr_threshold_cutoff = dcc.Slider(1, 1.50, .01, marks=overall_epr_threshold_marks, value=1.05, included=False, id='overall-epr-threshold')
-
+    overall_epr_threshold_value = html.Label(id='overall-epr-threshold-value', style=label_style)
 
     """
     Build Run Simulation Button, Specimen Types Selection and ADF Setting Selection Storage
     """
 
-    simulation_button = dbc.Button("Run Simulation", id='simulation-button', style=cutoff_selection_style)
+    #simulation_button = dbc.Button("Run Simulation", id='simulation-button', style=cutoff_selection_style)
     specimen_type_selection_label = html.Label("Filter By Specimen Type")
     specimen_type_selection = dcc.Dropdown(id='specimen-type-selection')
     settings = dcc.Store(id='settings', storage_type='session')
@@ -232,18 +238,19 @@ def serve_layout():
     
 
     clinical_sensitivity = daq.Gauge(
-        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
+        color={"default":"black", "gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Clinical Sensitivity',
         max=100,
         min=0,
         units="%",
         id='clinical-sensitivity',
         showCurrentValue=True,
-        style=sensitivity_specificity_style
+        style=sensitivity_specificity_style,
+        theme=dbc.themes.SOLAR
     )
 
     clinical_specificity = daq.Gauge(
-        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
+        color={"default":"black", "gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Clinical Specificity',
         max=100,
         min=0,
@@ -254,7 +261,7 @@ def serve_layout():
     )
 
     analytical_sensitivity = daq.Gauge(
-        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
+        color={"default":"black","gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Analytical Sensitivity',
         max=100,
         min=0,
@@ -265,7 +272,7 @@ def serve_layout():
     )
 
     analytical_specificity = daq.Gauge(
-        color={"gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
+        color={"default":"black","gradient":True,"ranges":{"red":[0,85],"yellow":[85,95],"green":[95,100]}},
         label='Analytical Specificity',
         max=100,
         min=0,
@@ -387,9 +394,9 @@ def serve_layout():
     """
     Build data storage components for affected samples data.
     """
-    clincial_affected_samples_data = dcc.Store(id='clinical-affected-samples-data', storage_type='session')
-    analytical_affected_samples_data = dcc.Store(id='analytical-affected-samples-data', storage_type='session')
-    customer_fps_affected_samples_data = dcc.Store(id='customer-fps-samples-data', storage_type='session')
+    clincial_affected_samples_data = dcc.Store(id='clinical-affected-samples-data', storage_type='session', clear_data=True)
+    analytical_affected_samples_data = dcc.Store(id='analytical-affected-samples-data', storage_type='session', clear_data=True)
+    customer_fps_affected_samples_data = dcc.Store(id='customer-fps-samples-data', storage_type='session', clear_data=True)
 
     return html.Div(children=[settings,
                        uploaded_data,
@@ -407,12 +414,12 @@ def serve_layout():
                                 html.Div(children=[html.H3("Set ADF Parameter Settings")],style={
                                         "padding": "10px"
                                       }), 
-                                html.Div(children=[ct_range_label, valid_ct_window_adjustment], style=cutoff_selection_style),
-                                html.Div(children=[min_ep_label, min_ep_cutoff], style=cutoff_selection_style),
-                                html.Div(children=[min_peak_label, min_peak_cutoff], style=cutoff_selection_style),
-                                html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_cutoff], style=cutoff_selection_style),
-                                html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff], style=cutoff_selection_style),
-                                html.Div(children=[epr_threshold_label, epr_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[ct_range_label, ct_range_values, valid_ct_window_adjustment], style=cutoff_selection_style),
+                                html.Div(children=[min_ep_label, min_ep_cutoff_value, min_ep_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[min_peak_label, min_peak_cutoff_value, min_peak_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[overall_epr_threshold_label, overall_epr_threshold_value, overall_epr_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[epr_check_ct_threshold_label, epr_check_ct_threshold_cutoff_value, epr_check_ct_threshold_cutoff], style=cutoff_selection_style),
+                                html.Div(children=[epr_threshold_label, epr_threshold_value, epr_threshold_cutoff], style=cutoff_selection_style),
                                 html.Div(children=[specimen_type_selection_label, specimen_type_selection], style=cutoff_selection_style)
                                 ],
                                 style={
@@ -572,7 +579,6 @@ def get_affected_sample_results(clinical_samples, analytical_samples, customer_f
   analytical_samples_dataframe = pd.DataFrame.from_dict(analytical_samples)
   customer_fps_dataframe = pd.DataFrame.from_dict(customer_fps)
   all_affected_samples = pd.concat([clinical_samples_dataframe,analytical_samples_dataframe,customer_fps_dataframe])
-  print(all_affected_samples)
   visable_columns = ['Data Source', 'Sample ID', 'Protocol', 'Target Setting Specimen Type', 'Expected Result', 'Reported Result', 'Simulated Target Result', 'Notes']
   column_definitions = []
   for column in all_affected_samples.columns:
@@ -587,6 +593,39 @@ def get_affected_sample_results(clinical_samples, analytical_samples, customer_f
               {"headerName": column, "field": column, "filter": True, "hide": True})
 
   return all_affected_samples.to_dict('records'),column_definitions
+
+@dash_app.callback(Output('min-ep-cutoff-value', 'children'),
+                   [Input('min-ep-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  return str(value)
+
+
+@dash_app.callback(Output('min-peak-cutoff-value', 'children'),
+                   [Input('min-peak-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  return str(value)
+
+@dash_app.callback(Output('epr-ct-check-threshold-cutoff-value', 'children'),
+                   [Input('epr-ct-check-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  return str(value)
+
+@dash_app.callback(Output('epr-threshold-value', 'children'),
+                   [Input('epr-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  return str(value)
+
+@dash_app.callback(Output('overall-epr-threshold-value', 'children'),
+                   [Input('overall-epr-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  return str(value)
+
+
+@dash_app.callback(Output('ct-range-values', 'children'),
+                   [Input('ct-window-threshold', 'value')])
+def update_ep_cutoff_label(value):
+  print(value[0])
+  return str(value[0]) + " - " + str(value[1])
 
 if __name__ == '__main__':
     
