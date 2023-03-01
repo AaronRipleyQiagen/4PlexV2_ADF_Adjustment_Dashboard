@@ -331,7 +331,7 @@ def serve_layout():
     Assemble the Card Body for Summary Results
     """
 
-    summary_content = dbc.Card(
+    summary_content = dcc.Loading(id='updating-graphs', type='graph', children=[dbc.Card(
 
     dbc.CardBody(
             [
@@ -351,7 +351,9 @@ def serve_layout():
                                       }),
             ]
         )
-    )    
+    
+    )]
+    )  
     
 
 
@@ -399,10 +401,10 @@ def serve_layout():
     customer_fps_affected_samples_data = dcc.Store(id='customer-fps-samples-data', storage_type='session', clear_data=True)
 
     return html.Div(children=[settings,
-                       dcc.Loading(id='working', children=[uploaded_data,
+                       dcc.Loading(id='uploading', children=[uploaded_data], type='dot', fullscreen=True),
                        clincial_affected_samples_data,
                        analytical_affected_samples_data,
-                       customer_fps_affected_samples_data], type='dot', fullscreen=True),
+                       customer_fps_affected_samples_data,
                        html.Div(children=[html.H3("Upload CSV File"), uploaded_data_msg,  upload_csv],
                        style={
                               "border": "1px solid black",
