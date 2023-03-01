@@ -581,7 +581,7 @@ def get_affected_sample_results(clinical_samples, analytical_samples, customer_f
   analytical_samples_dataframe = pd.DataFrame.from_dict(analytical_samples)
   customer_fps_dataframe = pd.DataFrame.from_dict(customer_fps)
   all_affected_samples = pd.concat([clinical_samples_dataframe,analytical_samples_dataframe,customer_fps_dataframe])
-  visable_columns = ['Data Source', 'Sample ID', 'Protocol', 'Target Setting Specimen Type', 'Expected Result', 'Reported Result', 'Simulated Target Result', 'Notes']
+  visable_columns = ['Data Source', 'Sample ID', 'Protocol', 'Target Setting Specimen Type', 'Expected Result', 'Reported Result', 'Simulated Target Result', 'Notes', 'XPCR Module']
   column_definitions = []
   for column in all_affected_samples.columns:
       if column == 'Data Source' or column == 'Protocol' or column == 'Target Setting Specimen Type':
