@@ -547,9 +547,7 @@ def serve_layout():
     Channel Selector
     """
     channel_selector = dcc.Dropdown(
-        options=["Green", "Yellow", "Orange", "Red", "Far Red"],
         style={"width": "75%", "display": "inline-block"},
-        value="Far Red",
         id="channel-selector",
     )
     return html.Div(
@@ -712,6 +710,18 @@ def store_uploaded_data(uploaded_data):
 
 
 @dash_app.callback(
+    Output("channel-selector", "options"),
+    Output("channel-selector", "value"),
+    Input("uploaded-data", "data"),
+    prevent_initial_call=True,
+)
+def get_available_channels(uploaded_data):
+    uploaded_dataframe = pd.DataFrame.from_dict(uploaded_data)
+    channel_options = sorted(uploaded_dataframe["Channel"].unique())
+    return channel_options, channel_options[0]
+
+
+@dash_app.callback(
     Output("settings", "data"),
     [
         Input("ct-window-threshold", "value"),
@@ -820,7 +830,7 @@ def update_sensitivity_specificity_fps_kpis(settings, uploaded_data):
             != dataframe_customer["Reported Result"]
         ]
 
-        #dataframe = pd.concat([dataframe_analytical, dataframe_clincial, dataframe_customer], axis=0)
+        # dataframe = pd.concat([dataframe_analytical, dataframe_clincial, dataframe_customer], axis=0)
 
         """
         Make Sample Count Summary Graph
